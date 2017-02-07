@@ -1,0 +1,4 @@
+tensao=220
+calibra=18
+AP_nome=aapm202
+AP_senha=1diadeaula

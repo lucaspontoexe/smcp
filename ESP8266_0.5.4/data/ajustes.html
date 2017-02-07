@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Configurações</title>
+
+	<script defer src="https://code.getmdl.io/1.2.1/material.min.js"></script>
+	<link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.blue-indigo.min.css"/> 
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"> 
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+    
+	<style>
+body {
+ background: linear-gradient(DeepSkyBlue, #448);
+}
+
+h2, div {
+font-family: sans-serif;
+}
+
+#esquema {
+    width: 400px;
+    position: relative;
+    left: 50%;
+    transform: translate(-50%, 0);
+    border-radius: 5px;
+    box-shadow: 5px 5px 10px 1px rgba(0,0,0,0.5);
+    background: linear-gradient(#ffffff,#888888);
+}
+
+#caixastexto {
+  margin: 10px;
+  padding: 10px;
+}
+
+#textoteste {
+    position: absolute;
+    bottom: 5px;
+}
+
+#Caixa1 {
+    width: 100%;
+}
+
+#clebinho {
+    position: absolute; 
+    width: 100%;
+	bottom: 5px;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+
+h2 {
+  text-align:center;
+  padding: 10px;
+  position: relative;  
+}
+
+@media screen and (max-width: 400px) {
+#esquema {
+    width: 90%;
+    position: relative;
+    left: 50%;
+    transform: translate(-50%, 0);
+    border-radius: 5px;
+    box-shadow: 5px 5px 10px 1px rgba(0,0,0,0.5);
+    background: linear-gradient(#ffffff,#888888);
+}
+
+#caixastexto {
+  margin: 10px;
+  padding: 10px;
+}
+
+
+#clebinho {
+    width: 90%;
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+
+h2 {
+  font-size: 200%;
+  text-align: center;
+  padding: 5px;
+  position: relative;  
+}
+}
+	  </style>
+  
+</head>
+
+<body>
+  <body>
+
+<div id="esquema">
+    <h2>Configurações</h2>
+    
+   <form action="javascript:salvar()" id="caixastexto" method="get">
+	<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input class="mdl-textfield__input" type="number" id="Caixa1" name="tensao">
+    <label class="mdl-textfield__label" for="Caixa1">Tensão no cabo (V)</label>
+    </div>
+     
+     <br>
+     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input class="mdl-textfield__input" type="number" id="Caixa2" name="calibra">
+    <label class="mdl-textfield__label" for="Caixa2">Valor de Calibração (padrão: 18)</label>
+    </div>
+          <br>
+     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input class="mdl-textfield__input" type="text" id="Caixa3" name="AP_nome">
+    <label class="mdl-textfield__label" for="Caixa3">Conectar ao ponto de acesso WiFi</label>
+    </div>
+          <br>
+     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+    <input class="mdl-textfield__input" type="password" id="Caixa4" name="AP_senha">
+    <label class="mdl-textfield__label" for="Caixa4">Senha do ponto de acesso</label>
+    </div>
+     <br>	
+    <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" onclick="submit">OK</button>
+   </form>
+</div>
+
+<div id="clebinho">
+    <p align="center">Sistema de Monitoramento de Corrente e Potência</p>
+</div>
+</body>
+  
+<script>
+  function salvar() {
+  var tensao = Caixa1.value;
+  var calibra = Caixa2.value;
+  var ap_nome = Caixa3.value;
+  var ap_senha = Caixa4.value;
+    
+  var xmlhttp;
+
+  xmlhttp = new XMLHttpRequest();
+  xmlhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+if (xhttp.responseText == "OK") alert("Os dados foram salvos. O módulo WiFi será reiniciado.");
+    }
+  };
+  xmlhttp.open("GET", "salvar?tensao="+tensao+"&calibra="+calibra+"&AP_nome="+ap_nome+"&AP_senha="+ap_senha, true);
+  xmlhttp.send();
+  }
+</script>
+</body>
+</html>

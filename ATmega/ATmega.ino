@@ -4,10 +4,10 @@
 /*  PARTES IMPORTANTES:
  *   
  *   Linha | Parte
- *      14 | Declaração de variáveis
- *      39 | Comunicação serial
- *      73 | Configurações
- *      85 | Loop
+ *      17 | Declaração de variáveis
+ *      41 | Comunicação serial
+ *      72 | Configurações
+ *      84 | Loop
  */    
 
 #include "EmonLib.h"

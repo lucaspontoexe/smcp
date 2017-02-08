@@ -1,5 +1,4 @@
-//NOTA: TROCAR O SERIAL QUANDO FOR TESTAR
-//OBRIGADO.
+//Os pinos de serial são os pinos 9 e 10 do Arduino.
 
 /*  PARTES IMPORTANTES:
  *   

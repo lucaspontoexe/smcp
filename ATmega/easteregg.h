@@ -1,5 +1,5 @@
 /*     EASTER EGG
- *     É quase o tema do jogo Bomba Patch,
+ *     É quase o tema do jogo Bomba Patch 4.1,
  *     só que em vez de Bomba Patch, 
  *     a gente troca por "SMCP".
  *     

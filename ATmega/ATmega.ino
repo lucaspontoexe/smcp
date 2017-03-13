@@ -1,7 +1,4 @@
-//NOTA: TROCAR O SERIAL PRA TESTAR
-//OBRIGADO.
-//E agora, o CI não repete mais o que é enviado.
-
+//NOTA: TROCAR O SERIAL CASO FOR TESTAR
 
 #include "EmonLib.h"
 #include <LiquidCrystal.h>
@@ -29,7 +26,7 @@ EnergyMonitor emon1;
 SoftwareSerial esp8266(9, 10);
 LiquidCrystal lcd(4, 3, 5, 6, 7, 8);
 
-#include "easteregg.h"
+//#include "easteregg.h"
 
 void recvWithEndMarker() {
   static byte ndx = 0;
@@ -103,8 +100,9 @@ void loop() {
   }
 
   if (esquema.indexOf("EASTEREGG") != -1) {
-  EASTEREGG();
+ //EASTEREGG();
   }
+  
   estadoBotaoIP = digitalRead(botao);
   if (estadoBotaoIP == HIGH) {
     lcd.clear();

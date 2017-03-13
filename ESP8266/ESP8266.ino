@@ -1,7 +1,6 @@
 /* INCLUIR: 
  * Correção do URLencoded
  * Método alternativo ao Serial.find()
- * Testar o yield()
  * Testar WebSockets
  */
 
@@ -94,9 +93,8 @@ void loop() {
   }
 
   //Lê a primeira linha do cabeçalho.
-  //Para ler as outras, use esse fullReq aqui.
+  //Só a primeira linha é necessária
   String req = client.readStringUntil('\r');
-  //String fullReq = client.readString();
   Serial.println(req);
   client.flush();
 
@@ -116,11 +114,11 @@ void loop() {
 
   if (req.indexOf("GET /info HTTP/") != -1) {
     client.flush();
-    pagina = "Conectado ao ponto";
-    pagina += ssid;
-    pagina += ". Acesse <a href=\"http://"
+    pagina = "Conectado ao ponto ";
+    pagina += apnome;
+    pagina += ". Acesse <a href=\"http://";
     pagina += WiFi.localIP();
-    pagina += "> a interface</a> para visualizar os dados."
+    pagina += "> a interface</a> para visualizar os dados.";
   }
 
   if (req.indexOf("/dados") != -1) {

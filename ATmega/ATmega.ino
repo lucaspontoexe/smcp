@@ -35,7 +35,7 @@ EnergyMonitor emon1;
 SoftwareSerial esp8266(9, 10);
 LiquidCrystal lcd(4, 3, 5, 6, 7, 8);
 
-#include "easteregg.h"
+//#include "easteregg.h"
 
 //Comunicação serial
 void recvWithEndMarker() {
@@ -109,9 +109,12 @@ void loop() {
     calibra = cal.toInt();
   }
 
+  /*
   if (comandos.indexOf("EASTEREGG") != -1) {
     EASTEREGG();
   }
+  */
+  
   estadoBotaoIP = digitalRead(botao);
   if (estadoBotaoIP == HIGH) {
     lcd.clear();

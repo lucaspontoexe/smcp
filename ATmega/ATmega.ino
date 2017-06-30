@@ -1,17 +1,19 @@
-
-
+//NOTA: TROCAR O SERIAL CASO FOR TESTAR
+//substituir o "esquema"
 #include "EmonLib.h"
 #include <LiquidCrystal.h>
 #include <SoftwareSerial.h>
 
-const byte    numChars        = 48;     // O programa só recebe 48 caracteres de cada vez
-char          receivedChars[numChars];  // Array pra guardar os dados enviados por serial
-boolean       newData         = false;  // Muda quando há dados novos pelo serial
-unsigned long previousMillis  = 0;      // Salva a última vez em que o display foi atualizado
-unsigned long previousMillis1 = 0;      // Usado para contar o tempo em que o IP fica no display
-const long    interval        = 200;    // Intervalo de atualização do display
-String        comandos;                 // Mesma coisa que o array receivedChars, porém em formato de string.
-boolean       ocupado         = true;   // Usada em outra versão, pode ser excluída.
+
+
+const byte    numChars        = 48;
+char          receivedChars[numChars];  // an array to store the received data
+boolean       newData         = false;
+unsigned long previousMillis  = 0;      // will store last time LED was updated
+unsigned long previousMillis1 = 0;
+const long    interval        = 200;    // interval at which to blink (milliseconds)
+String        esquema;
+boolean       ocupado         = true;
 
 const int     pino_sct        = 0;
 const int     botao           = 11;
@@ -22,13 +24,14 @@ String        ip = "(conectando)";
 String        dados;
 String        t, cal;
 
+#include "display_chars.h"
+
 EnergyMonitor emon1;
 SoftwareSerial esp8266(9, 10);
 LiquidCrystal lcd(4, 3, 5, 6, 7, 8);
 
-//#include "easteregg.h"
+#include "easteregg.h"
 
-//Comunicação serial
 void recvWithEndMarker() {
   static byte ndx = 0;
   char endMarker = '\n';
@@ -45,7 +48,7 @@ void recvWithEndMarker() {
       }
     }
     else {
-      receivedChars[ndx] = '\0'; // Termina a string
+      receivedChars[ndx] = '\0'; // terminate the string
       ndx = 0;
       newData = true;
     }
@@ -54,53 +57,61 @@ void recvWithEndMarker() {
 
 void showNewData() {
   if (newData == true) {
-    comandos = receivedChars;
+    //esp8266.print("This just in ... ");
+    //esp8266.println(receivedChars);
+    esquema = receivedChars;
     newData = false;
   }
 }
 
-//Configurações
 void setup() {
   pinMode (botao, INPUT);
+  lcd.createChar(0, atilmin);
+  lcd.createChar(1, atil);
+  lcd.createChar(2, aagudo);
+  lcd.createChar(3, eagudo);
+  lcd.createChar(4, iagudo);
+
   lcd.begin(16, 2);
-  lcd.setCursor(0, 0); lcd.print("SMCP      0.5.1");
-  lcd.setCursor(0, 1); lcd.print("Iniciando... ");
+  lcd.setCursor(6, 0); lcd.print("SMCP");
+  lcd.setCursor(3, 1); lcd.print("Vers"); lcd.write((uint8_t)0); lcd.print("o 0.7");
   emon1.current(pino_sct, calibra);
   esp8266.begin(9600);
-  esp8266.println("Ligado");
+  esp8266.println("Tá ligado, tá ligado?");
   ocupado = false;
 }
 
-//Loop
 void loop() {
   unsigned long currentMillis = millis();
   double Irms = emon1.calcIrms(1480);
   double potencia = Irms * tensao;
+
+  dados = "DADOS:{ \"corrente\": ";
+  dados += Irms;
+  dados += ", \"potencia\":";
+  dados += potencia;
+  dados += " }";
+  esp8266.println(dados);
+
   recvWithEndMarker();
   showNewData();
-
-  if (comandos.indexOf("DADOS?") != -1) {
-    dados = "DADOS:{ \"corrente\": ";
-    dados += Irms;
-    dados += ", \"potencia\":";
-    dados += potencia;
-    dados += " }";
-    esp8266.println(dados);
-  }
-  if (comandos.indexOf("T:") != -1) {
-    t = comandos.substring(comandos.indexOf("T:") + 2, comandos.indexOf('\r'));
+  if (esquema.indexOf("T:") != -1) {
+    t = esquema.substring(esquema.indexOf("T:") + 2, esquema.indexOf('\r'));
     esp8266.print("Tensão ajustada para ");
     esp8266.println(t);
     tensao = t.toInt();
   }
-  if (comandos.indexOf("CALIBRA:") != -1) {
-    cal = comandos.substring(comandos.indexOf("CALIBRA:") + 8, comandos.indexOf('\r'));
+  if (esquema.indexOf("CALIBRA:") != -1) {
+    cal = esquema.substring(esquema.indexOf("CALIBRA:") + 8, esquema.indexOf('\r'));
     esp8266.print("Nível de calibração ajustado para: ");
     esp8266.println(calibra);
     calibra = cal.toInt();
   }
 
-  
+  if (esquema.indexOf("EASTEREGG") != -1) {
+    EASTEREGG();
+  }
+
   estadoBotaoIP = digitalRead(botao);
   if (estadoBotaoIP == HIGH) {
     lcd.clear();
@@ -108,8 +119,8 @@ void loop() {
     delay(150);
     recvWithEndMarker();
     showNewData();
-    if (comandos.indexOf("IP:") != -1) {
-      ip = comandos.substring(comandos.indexOf("IP:") + 3, comandos.indexOf('\r'));
+    if (esquema.indexOf("IP:") != -1) {
+      ip = esquema.substring(esquema.indexOf("IP:") + 3, esquema.indexOf('\r'));
       ocupado = true;
       lcd.clear(); //Apaga a tela assim que achar o IP.
     }
@@ -117,18 +128,29 @@ void loop() {
     unsigned long currentMillis1 = millis();
     while (currentMillis1 - previousMillis1 <= 3000) {
       currentMillis1 = millis();
-      lcd.setCursor(0, 0); lcd.print("IP:          "); 
+      lcd.setCursor(0, 0); lcd.print("IP:          "); //Não repita tamanha gambiarra em casa.
       lcd.setCursor(0, 1); lcd.print(ip);
+
+      unsigned long currentMillis = millis();
+      double Irms = emon1.calcIrms(1480);
+      double potencia = Irms * tensao;
+
+      dados = "DADOS:{ \"corrente\": ";
+      dados += Irms;
+      dados += ", \"potencia\":";
+      dados += potencia;
+      dados += " }";
+      esp8266.println(dados);
       recvWithEndMarker();
       showNewData();
     }
   }
-  ip = "(desconectado)";
+  //ip = "(desconectado)";
   ocupado = false;
-  comandos = "";
+  esquema = "";
 
   if (currentMillis - previousMillis >= interval) {
-    // Salva a última vez em que o display foi atualizado
+    // save the last time you blinked the LED
     previousMillis = currentMillis;
 
     if (ocupado == false) {

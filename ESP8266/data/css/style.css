@@ -1,0 +1,213 @@
+body {
+  background: linear-gradient(DeepSkyBlue, #448);
+  margin: 0px;
+  font-family: "Roboto", sans-serif;
+}
+
+.header {
+  height: 100px;
+  background: linear-gradient(lightgreen, green);
+}
+
+h3 {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%,0);
+}
+
+p {
+  width: 90%;
+  position: absolute;
+  top: 65px;
+  left: 50%;
+  transform: translate(-50%,0);
+}
+
+#q {
+  width: 500px;
+  position: relative;
+  top: 10px;
+}
+
+#caixatempo {
+  width: 60px;
+}
+
+#corrente {
+  width: 300px;
+  height: 300px;
+  top: 50%;
+  left: 25%;
+  transform: translate(-50%, 100px);
+  position: relative;
+  border-radius: 5px;
+  box-shadow: 5px 5px 10px 1px rgba(0,0,0,0.5);
+  background: linear-gradient(#ffffff,#aaaaaa);
+}
+
+#potencia {
+  width: 300px;
+  height: 300px;
+  left: 75%;
+  top: 50%;
+  transform: translate(-50%, -200px);
+  position: relative;
+  border-radius: 5px;
+  box-shadow: 5px 5px 10px 1px rgba(0,0,0,0.5);
+  background: linear-gradient(#ffffff,#aaaaaa);
+}
+
+#clebinho {
+  position: relative; 
+  bottom: 5%;
+  left: 50%;
+  transform: translate(-50%, 0);
+}
+
+.titulo {
+  position: relative;
+  font-size: 200%;
+  top: 20px; 
+}
+
+h2 {
+  text-align:center;
+  padding: 10px;
+  position: relative;  
+}
+
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
+#percent {
+  font-weight: normal;  
+  font-family: 'Roboto', "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+} 
+
+.container {
+  width: 200px;
+  height: 100px;
+  position: relative;
+  top: 30%;
+  left: 50%;
+  overflow: hidden;
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+.gauge-a {
+  z-index: 1;
+  position: absolute;
+  background-color: rgba(255,255,255,.2);
+  width: 200px;
+  height: 100px;
+  top: 0%;
+  border-radius: 125px 125px 0px 0px;
+}
+
+.gauge-b {
+  z-index: 3;
+  position: absolute;
+  background-color: #eee;
+  width: 125px;
+  height: 62.5px;
+  top: 37.5px;
+  margin-left: 37.5px;
+  margin-right: auto;
+  border-radius: 125px 125px 0px 0px;
+}
+
+.gauge-c {
+  z-index: 2;
+  position: absolute;
+  background-color: #5664F9;
+  width: 200px;
+  height: 100px;
+  top: 100px;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 0px 0px 100px 100px;
+  transform-origin: center top;
+  transition: all 75ms ease-in-out;
+}
+
+/*Sumir com isso aqui depois
+.container:hover .gauge-c {  transform:rotate(0.5turn);
+}
+*/
+.container:hover .gauge-data { color: rgba(10,10,10,1); }
+
+.gauge-data {
+  z-index: 4;
+  color: rgba(20,20,20,.2);
+  font-size: 1em;
+  line-height: 12.5px;
+  position: absolute;
+  width: 200px;
+  height: 100px;
+  top: 45px;
+  margin-left: auto;
+  margin-right: auto;
+  transition: all 0.75s ease-out;
+}
+
+h1 {
+  font-size: 2em;
+  line-height: 12.5px;
+}
+
+@media screen and (max-width: 619px) {
+
+  .header {
+    height: 120px;
+  }
+
+  #corrente {
+    width: 300px;
+    height: 300px;
+    position: relative;
+    left: 50%;
+    top: 30px;
+    transform: translate(-50%, 0);
+    border-radius: 5px;
+    box-shadow: 5px 5px 10px 1px rgba(0,0,0,0.5);
+    background: linear-gradient(#ffffff,#aaaaaa);
+  }
+
+  #potencia {
+    width: 300px;
+    height: 300px;
+    top: 50px;
+    position: relative;
+    left: 50%;
+    transform: translate(-50%, 0);
+    border-radius: 5px;
+    box-shadow: 5px 5px 10px 1px rgba(0,0,0,0.5);
+    background: linear-gradient(#ffffff,#aaaaaa);  
+  }
+
+  h1 {
+    position: absolute;
+    font-size: 200%;
+    left: 50%;
+    transform: translate(-50%, 0);
+    top: 0px;
+  }
+
+  .container {
+    width: 200px;
+    height: 100px;
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    overflow: hidden;
+    text-align: center;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media screen and (max-width: 299px) {
+  #corrente, #potencia {
+    width: 90%;
+    height: 250px;
+  }
+}

@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Easter Egg</title>
+
+  <style>
+  body {
+  background: black;
+  }
+  
+  h1 {
+  font-size: 190px;
+  font-family: sans-serif;
+  color: white;
+  }
+  
+  p {
+  color: white;
+  font-family: sans-serif;
+  }
+  
+  button {
+  position: absolute;
+  }
+  </style>
+  <script>
+var wsUri = "ws://" + extractHostname(location.href) + ":81";
+//var output;
+
+  function init()
+  {
+    //output = document.getElementById("output");
+    testWebSocket();
+  }
+
+  function testWebSocket()
+  {
+    websocket = new WebSocket(wsUri);
+    websocket.onopen = function(evt) { onOpen(evt) };
+    websocket.onclose = function(evt) { onClose(evt) };
+    websocket.onmessage = function(evt) { onMessage(evt) };
+    websocket.onerror = function(evt) { onError(evt) };
+  }
+
+  function onOpen(evt)
+  {
+    writeToScreen("CONECTADO");
+  }
+
+  function onClose(evt)
+  {
+    writeToScreen("DESCONECTADO");
+  }
+
+  function onMessage(evt)
+  {
+    writeToScreen('RECEBIDO: ' + evt.data);
+    var result = JSON.parse(evt.data);
+	if (result.running == true){
+	disparar();
+	}
+	//websocket.close();
+  }
+
+  function onError(evt)
+  {
+    writeToScreen('ERRO: ' + evt.data);
+  }
+  function doSend(message)
+  {
+    writeToScreen("ENVIADO: " + message);
+    websocket.send(message);
+  }
+  function writeToScreen(message)
+  {
+    console.log(message);
+  }
+window.addEventListener("load", init, false);
+
+//Extrai o hostname da página pra usar nos Websockets
+//Retirado de https://stackoverflow.com/questions/8498592/extract-hostname-name-from-string
+function extractHostname(url) {
+    var hostname;
+    //find & remove protocol (http, ftp, etc.) and get hostname
+
+    if (url.indexOf("://") > -1) {
+        hostname = url.split('/')[2];
+    }
+    else {
+        hostname = url.split('/')[0];
+    }
+
+    //find & remove port number
+    hostname = hostname.split(':')[0];
+    //find & remove "?"
+    hostname = hostname.split('?')[0];
+
+    return hostname;
+}
+
+function disparar() {
+console.log('tali');
+var patch = document.getElementById("bombapatch");
+patch.play();
+}
+
+setTimeout(function(){ doSend("#EASTEREGG"); }, 1000);
+var man = document.getElementById("manual");
+man.addEventListener("click", function(){ console.log("q") }, false);
+
+</script>
+</head>
+
+<body>
+<h1 align="center">OLHA PRO DISPLAY</h1>
+<audio id="bombapatch"><source src="easteregg.m4a" type="audio/mp4"></audio>
+
+<button id="manual">Nada aconteceu? Clique aqui.</button>
+<div id="clebinho">
+<p align="center">©2016-2017 Lucas Teixeira. Vários direitos reservados. CLÉBINHO É O PODER 4EVER </p></div>
+</body>
+
+
+</body>
+</html>

@@ -1,13 +1,4 @@
-//Os pinos de serial são os pinos 9 e 10 do Arduino.
 
-/*  PARTES IMPORTANTES:
- *   
- *   Linha | Parte
- *      17 | Declaração de variáveis
- *      41 | Comunicação serial
- *      72 | Configurações
- *      84 | Loop
- */    
 
 #include "EmonLib.h"
 #include <LiquidCrystal.h>
@@ -109,11 +100,6 @@ void loop() {
     calibra = cal.toInt();
   }
 
-  /*
-  if (comandos.indexOf("EASTEREGG") != -1) {
-    EASTEREGG();
-  }
-  */
   
   estadoBotaoIP = digitalRead(botao);
   if (estadoBotaoIP == HIGH) {

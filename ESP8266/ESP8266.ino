@@ -1,26 +1,55 @@
-/* INCLUIR: 
- * Correção do URLencoded
- * Método alternativo ao Serial.find()
- * Testar o yield()
- * Testar WebSockets
- */
-
-
 #include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
 #include "FS.h"
 
-String headerJSON = "HTTP/1.1 200 OK\nAccess-Control-Allow-Origin: *\nContent-Type: application/json;charset=utf-8\nConnection: close\n\n";
-String headerHTML = "HTTP/1.1 200 OK\nContent-Type: text/html;charset=utf-8\nConnection: close\n\n";
-String pagina, dados, tensao, calibra, apnome, apsenha;
-int t, a, b, c, timeout;
-int client_timeout;
-WiFiServer server(80);
+const byte    numChars = 48;            // Recebe 48 caracteres por vez, via serial.
+char          receivedChars[numChars];  // Cadeia de caracteres para armazenar temporariamente os dados.
+boolean       newData = false;
+String        received;                 // String para armazenar os caracteres.
+String        pagina, tensao, calibra, apnome, apsenha;
+int t;
+ESP8266WebServer server(80);
+WiFiServer trafego(80);
+
+//Inclui funções para a leitura do serial.
+#include "serial.h"
+
+//Inclui as outras funções de página, na outra aba.
+#include "paginas.h"
+
+void salvarconfig() {
+  tensao  = server.arg("tensao");
+  calibra = server.arg("calibra");
+  apnome  = server.arg("apnome");
+  apsenha = server.arg("apsenha");
+
+  //Salva os novos dados no config.txt
+  File f = SPIFFS.open("/config.txt", "w");
+  f.print("tensao=");   f.println(tensao);
+  f.print("calibra=");  f.println(calibra);
+  f.print("AP_nome=");  f.println(apnome);
+  f.print("AP_senha="); f.println(apsenha);
+  f.close();
+  server.send(200, "text/plain", "OK");
+  Serial.println("Dados salvos. Reiniciando...");
+  delay(1000);
+  ESP.restart();
+}
+
+void pegarOsDados() {
+  Serial.println("DADOS?");
+  delay(10);
+  //Recebe os dados do ATMega
+  recvWithEndMarker();
+  showNewData();
+  server.send(200, "application/json", received);
+}
 
 void setup() {
   Serial.begin(9600);
-  Serial.setTimeout(1200);
+  Serial.setTimeout(500);
   Serial.println("\r\n");
-  Serial.println("ESP8266 0.5.4");
+  Serial.println("ESP8266 0.6.0");
   Serial.print("Iniciando SPIFFS... ");
   SPIFFS.begin();
   Serial.println("OK");
@@ -36,7 +65,8 @@ void setup() {
   if (f.find("AP_senha=")); apsenha = f.readStringUntil('\r');
   f.close();
 
-  //Copia as variáveis apnome e apsenha para uma sequência constante de char
+  //Copia as variáveis apnome e apsenha para uma sequência de char.
+  //Por algum motivo, a função que conecta no WiFi só funciona com esse tipo de variável.
   const char* ssid = apnome.c_str();
   const char* senha = apsenha.c_str();
 
@@ -44,7 +74,7 @@ void setup() {
   Serial.print("T:");       Serial.println(tensao);
   Serial.print("CALIBRA:"); Serial.println(calibra);
 
-  Serial.print("Conectando ao ponto: ");
+  Serial.print("Conectando ao ponto de acesso ");
   Serial.println(ssid);
   WiFi.begin(ssid, senha);
 
@@ -63,119 +93,29 @@ void setup() {
   t = 0;
   Serial.print("\r\nWiFi conectado. Iniciando servidor... ");
   server.begin();
-  Serial.println("OK");
-  Serial.print("IP:"); Serial.println(WiFi.localIP());
+  Serial.println("OK.");
+
+  //Executa uma função para cada página.
+  //Olhe o arquivo paginas.h, na outra aba.
+  server.on("/", handleRoot);
+  server.on("/indice", carregarIndice);
+  server.on("/dados", pegarOsDados);  //Linha 39.
+  server.on("/configurar", configurar);
+  server.on("/teste", exportudomesmo);
+  server.on("/salvar", salvarconfig); //Esta função está na linha 20.
+  server.on("/EASTEREGG", EasterEgg);
+  server.onNotFound(QuatroZeroQuatro);
 }
 
 void loop() {
-
-  if (Serial.available() > 0) {
-    if (Serial.find("IP?")) {
-      delay(50);
-      if (WiFi.status() != WL_CONNECTED) {
-        Serial.print("IP:");
-        Serial.println("192.168.4.1");
-      } else  {
-        Serial.print("IP:"); Serial.println(WiFi.localIP()); 
-      }
-    }
-  }
-
-  //Verifica se algum dispositivo (cliente) se conectou
-  WiFiClient client = server.available();
-  if (!client) {
-    return;
-  }
-
-  //Espera o cliente enviar alguns dados
-  Serial.println("Novo cliente");
-  while (!client.available()) {
-    delay(1);
-  }
-
-  //Lê a primeira linha do cabeçalho.
-  //Para ler as outras, use esse fullReq aqui.
-  String req = client.readStringUntil('\r');
-  //String fullReq = client.readString();
-  Serial.println(req);
-  client.flush();
-
-  //Executa um determinado código para cada tipo de requisição
-  if (req.indexOf("GET / HTTP/") != -1) {
-    File index = SPIFFS.open("/interface.html", "r");
-    String arq = index.readString();
-    index.close();
-    pagina = headerHTML + arq;
-    client.flush();
-  }
+  recvWithEndMarker();
+  showNewData();
+  //O serial funciona ou é o meu ESP que tá quebrado?
+  Serial.print("\nDEBUG: "); Serial.println(received);
   
-  if (req.indexOf("GET /indice HTTP/") != -1) {
-    client.flush();
-    pagina = "<a href=\"/dados\">Ir para a página dos dados</a>, <a href=\"/configurar\">configurar</a> ou <a href=\"/teste\">ver o que tá acontecendo com o arquivo da configuração</a>";
+  if (received.indexOf("IP?") != -1) {
+    Serial.print("IP:"); Serial.println(WiFi.localIP());
   }
-
-  if (req.indexOf("GET /info HTTP/") != -1) {
-    client.flush();
-    pagina = "Conectado ao ponto";
-    pagina += ssid;
-    pagina += ". Acesse <a href=\"http://"
-    pagina += WiFi.localIP();
-    pagina += "> a interface</a> para visualizar os dados."
-  }
-
-  if (req.indexOf("/dados") != -1) {
-    client.flush();
-    Serial.println("DADOS?");
-    delay(10);
-    //Recebe os dados do ATMega
-    while (!Serial.available()) {
-      delay(1);
-    }
-    if (Serial.find("DADOS:")) {
-      dados = Serial.readStringUntil('\r');
-      delay(20);
-    }
-    pagina = headerJSON + dados;
-  }
-
-  if (req.indexOf("GET /configurar HTTP/") != -1) {
-    File index = SPIFFS.open("/ajustes.html", "r");
-    String arq = index.readString();
-    index.close();
-    pagina = headerHTML + arq;
-    client.flush();
-  }
-
-  if (req.indexOf("GET /teste") != -1) {
-    client.flush();
-    File f = SPIFFS.open("/config.txt", "r");
-    pagina = f.readString();
-  }
-
-  if (req.indexOf("GET /salvar") != -1) {
-    //if (fullReq.indexOf("?") != -1)
-    client.flush();
-
-    //Lê os dados enviados na página de configuração
-    tensao  = req.substring(req.indexOf("tensao=")   + 7, a = req.indexOf('&'));
-    calibra = req.substring(req.indexOf("calibra=")  + 8, b = req.indexOf('&', a + 1));
-    apnome  = req.substring(req.indexOf("AP_nome=")  + 8, req.lastIndexOf('&'));      //req.indexOf('&',b + 1) se for pra incluir mais
-    apsenha = req.substring(req.indexOf("AP_senha=") + 9, req.indexOf(" HTTP/"));     //Última parte
-    
-    //Salva os novos dados no config.txt
-    File f = SPIFFS.open("/config.txt", "w");
-    f.print("tensao=");   f.println(tensao);
-    f.print("calibra=");  f.println(calibra);
-    f.print("AP_nome=");  f.println(apnome);
-    f.print("AP_senha="); f.println(apsenha);
-    f.close();
-    Serial.println("Dados salvos. Reiniciando...");
-    client.print("OK");
-    delay(1000);
-    ESP.restart();
-  }
-  client.print(pagina);
-  client.setTimeout(1000);
-  delay(2);
-  Serial.println("Cliente desconectado");
+  received = "";
+  server.handleClient();
 }

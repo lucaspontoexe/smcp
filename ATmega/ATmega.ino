@@ -1,5 +1,3 @@
-//NOTA: TROCAR O SERIAL CASO FOR TESTAR
-//substituir o "esquema"
 #include "EmonLib.h"
 #include <LiquidCrystal.h>
 #include <SoftwareSerial.h>
@@ -12,7 +10,7 @@ boolean       newData         = false;
 unsigned long previousMillis  = 0;      // will store last time LED was updated
 unsigned long previousMillis1 = 0;
 const long    interval        = 200;    // interval at which to blink (milliseconds)
-String        esquema;
+String        stringSerial;
 boolean       ocupado         = true;
 
 const int     pino_sct        = 0;
@@ -59,7 +57,7 @@ void showNewData() {
   if (newData == true) {
     //esp8266.print("This just in ... ");
     //esp8266.println(receivedChars);
-    esquema = receivedChars;
+    stringSerial = receivedChars;
     newData = false;
   }
 }
@@ -95,20 +93,20 @@ void loop() {
 
   recvWithEndMarker();
   showNewData();
-  if (esquema.indexOf("T:") != -1) {
-    t = esquema.substring(esquema.indexOf("T:") + 2, esquema.indexOf('\r'));
+  if (stringSerial.indexOf("T:") != -1) {
+    t = stringSerial.substring(stringSerial.indexOf("T:") + 2, stringSerial.indexOf('\r'));
     esp8266.print("Tensão ajustada para ");
     esp8266.println(t);
     tensao = t.toInt();
   }
-  if (esquema.indexOf("CALIBRA:") != -1) {
-    cal = esquema.substring(esquema.indexOf("CALIBRA:") + 8, esquema.indexOf('\r'));
+  if (stringSerial.indexOf("CALIBRA:") != -1) {
+    cal = stringSerial.substring(stringSerial.indexOf("CALIBRA:") + 8, stringSerial.indexOf('\r'));
     esp8266.print("Nível de calibração ajustado para: ");
     esp8266.println(calibra);
     calibra = cal.toInt();
   }
 
-  if (esquema.indexOf("EASTEREGG") != -1) {
+  if (stringSerial.indexOf("EASTEREGG") != -1) {
     EASTEREGG();
   }
 
@@ -119,8 +117,8 @@ void loop() {
     delay(150);
     recvWithEndMarker();
     showNewData();
-    if (esquema.indexOf("IP:") != -1) {
-      ip = esquema.substring(esquema.indexOf("IP:") + 3, esquema.indexOf('\r'));
+    if (stringSerial.indexOf("IP:") != -1) {
+      ip = stringSerial.substring(stringSerial.indexOf("IP:") + 3, stringSerial.indexOf('\r'));
       ocupado = true;
       lcd.clear(); //Apaga a tela assim que achar o IP.
     }
@@ -147,7 +145,7 @@ void loop() {
   }
   //ip = "(desconectado)";
   ocupado = false;
-  esquema = "";
+  stringSerial = "";
 
   if (currentMillis - previousMillis >= interval) {
     // save the last time you blinked the LED

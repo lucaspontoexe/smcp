@@ -1,3 +1,20 @@
+/*     EASTER EGG
+ *     É quase o tema do jogo Bomba Patch 4.1,
+ *     só que em vez de Bomba Patch, 
+ *     a gente troca por "SMCP".
+ *     
+ *     O único motivo para manter isso é
+ *     que isto foi útil para achar o problema
+ *     da outra versão.
+ *     
+ *     O dispositivo para tudo para mostrar
+ *     esses versos no display.
+ *     
+ *     MAS E SE EU NÃO QUISER QUE ISSO APAREÇA?
+ *     Comente ou apague as linhas 39 e 114 do
+ *     arquivo ATmega.ino
+  */
+  
 #ifndef _EASTEREGG_H
 #define _EASTEREGG_H
 

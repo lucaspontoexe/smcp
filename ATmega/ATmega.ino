@@ -2,14 +2,12 @@
 #include <LiquidCrystal.h>
 #include <SoftwareSerial.h>
 
-
-
 const byte    numChars        = 48;
-char          receivedChars[numChars];  // an array to store the received data
+char          receivedChars[numChars];  // Array para manter os caracteres de serial
 boolean       newData         = false;
-unsigned long previousMillis  = 0;      // will store last time LED was updated
-unsigned long previousMillis1 = 0;
-const long    interval        = 200;    // interval at which to blink (milliseconds)
+unsigned long previousMillis  = 0;      // Salva a última vez que os dados foram atualizados
+unsigned long previousMillis1 = 0;		// Salva a última vez que o display mostrou o IP
+const long    interval        = 200;    // Intervalo entre medições
 String        stringSerial;
 boolean       ocupado         = true;
 
@@ -28,7 +26,7 @@ EnergyMonitor emon1;
 SoftwareSerial esp8266(9, 10);
 LiquidCrystal lcd(4, 3, 5, 6, 7, 8);
 
-#include "easteregg.h"
+//#include "easteregg.h"
 
 void recvWithEndMarker() {
   static byte ndx = 0;
@@ -46,7 +44,7 @@ void recvWithEndMarker() {
       }
     }
     else {
-      receivedChars[ndx] = '\0'; // terminate the string
+      receivedChars[ndx] = '\0'; // Termina a string
       ndx = 0;
       newData = true;
     }
@@ -55,8 +53,6 @@ void recvWithEndMarker() {
 
 void showNewData() {
   if (newData == true) {
-    //esp8266.print("This just in ... ");
-    //esp8266.println(receivedChars);
     stringSerial = receivedChars;
     newData = false;
   }
@@ -75,7 +71,7 @@ void setup() {
   lcd.setCursor(3, 1); lcd.print("Vers"); lcd.write((uint8_t)0); lcd.print("o 0.7");
   emon1.current(pino_sct, calibra);
   esp8266.begin(9600);
-  esp8266.println("Tá ligado, tá ligado?");
+  esp8266.println("Ligado");
   ocupado = false;
 }
 
@@ -95,7 +91,7 @@ void loop() {
   showNewData();
   if (stringSerial.indexOf("T:") != -1) {
     t = stringSerial.substring(stringSerial.indexOf("T:") + 2, stringSerial.indexOf('\r'));
-    esp8266.print("Tensão ajustada para ");
+    esp8266.print("Tensão ajustada para "); //DADOS: {"tensao": 220}, por exemplo.
     esp8266.println(t);
     tensao = t.toInt();
   }
@@ -106,9 +102,11 @@ void loop() {
     calibra = cal.toInt();
   }
 
+  /*
   if (stringSerial.indexOf("EASTEREGG") != -1) {
     EASTEREGG();
   }
+  */
 
   estadoBotaoIP = digitalRead(botao);
   if (estadoBotaoIP == HIGH) {
@@ -126,7 +124,7 @@ void loop() {
     unsigned long currentMillis1 = millis();
     while (currentMillis1 - previousMillis1 <= 3000) {
       currentMillis1 = millis();
-      lcd.setCursor(0, 0); lcd.print("IP:          "); //Não repita tamanha gambiarra em casa.
+      lcd.setCursor(0, 0); lcd.print("IP:          ");
       lcd.setCursor(0, 1); lcd.print(ip);
 
       unsigned long currentMillis = millis();
@@ -148,7 +146,7 @@ void loop() {
   stringSerial = "";
 
   if (currentMillis - previousMillis >= interval) {
-    // save the last time you blinked the LED
+    //Salva a última vez que o display mostrou o IP, para calcular o tempo.
     previousMillis = currentMillis;
 
     if (ocupado == false) {

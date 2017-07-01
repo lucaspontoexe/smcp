@@ -44,7 +44,6 @@ String getContentType(String filename) {
   else if (filename.endsWith(".jpg")) return "image/jpeg";
   else if (filename.endsWith(".ico")) return "image/x-icon";
   else if (filename.endsWith(".m4a")) return "audio/m4a";
-  //resto
   else if (filename.endsWith(".xml")) return "text/xml";
   else if (filename.endsWith(".pdf")) return "application/x-pdf";
   else if (filename.endsWith(".zip")) return "application/x-zip";
@@ -59,7 +58,7 @@ bool handleFileRead(String path) {
 
   if (path.endsWith("/"))
   {
-    path += "index.html"; //index.html
+    path += "index.html";
   }
 
   String contentType = getContentType(path);
@@ -96,7 +95,7 @@ void setupWiFi()
   const char* ssid = apnome.c_str();
   const char* senha = apsenha.c_str();
   //Conectar ponto de acesso
-  WiFi.begin(ssid, senha); //Substituir por ssid, senha
+  WiFi.begin(ssid, senha);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -130,9 +129,7 @@ void serialEvent() {
     inputString = "";
     stringComplete = false;
 
-    //line += '\n';
-
-    if (line.indexOf("DADOS:") != -1) {  //DADOS:
+    if (line.indexOf("DADOS:") != -1) { 
       String tmpline = line.substring(6);
       webSocket.sendTXT(socketNumber, tmpline);
     }

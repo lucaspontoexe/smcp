@@ -45,11 +45,10 @@ void setup() {
   webSocket.begin();
   webSocket.onEvent(webSocketEvent);
 
-
-  Serial.println("START MIRRORING SERIAL"); //Aqui que a brincadeira começa. Mandar o Arduino transmitir dados em JSON direto.
+  Serial.println("TRANSMITINDO SERIAL");
   Serial.print("IP:");
   Serial.println(WiFi.localIP());
-  inputString.reserve(256); //usado pelo método alternativo de leitura de serial
+  inputString.reserve(256);
   server.begin();
   yield();
 
@@ -61,9 +60,6 @@ void setup() {
     handleFileRead("/ajustes.html");
   });
   server.on("/salvar", saveConfig);
-  server.on("/easteregg", HTTP_GET, []() {
-    handleFileRead("/easteregg.html");
-  });
 
   server.onNotFound([]() {
     if (!handleFileRead(server.uri()))

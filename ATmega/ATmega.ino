@@ -146,7 +146,7 @@ void loop() {
   stringSerial = "";
 
   if (currentMillis - previousMillis >= interval) {
-    //Salva a última vez que o display mostrou o IP, para calcular o tempo.
+    //Marca tempo para verificar se já se passou o tempo para uma nova medição
     previousMillis = currentMillis;
 
     if (ocupado == false) {

@@ -16,7 +16,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
 
     case WStype_TEXT:
       //Comandos que comecem com '#' são envidados diretamente pro serial
-      //(sim, serial remoto)
+      //Da mesma forma, é possível enviar dados para o navegador (ver a programação do ATmega)
+	  //Ou seja, serial remoto.
       if (payload[0] == '#') {
         //String tmp = payload.substring(1);
         Serial.printf("[%u] get Text: %s\n", num, payload);
@@ -104,7 +105,7 @@ void setupWiFi()
       Serial.println("\r\nNão foi possivel conectar ao ponto de acesso. Iniciando apenas em modo AP");
       Serial.println("IP:192.168.4.1");
       WiFi.mode(WIFI_AP);
-      WiFi.softAP("SMCP", "clebinho");
+      WiFi.softAP("SMCP", "25324646");
       break;
     }
   }
@@ -121,11 +122,11 @@ void serialEvent() {
       inputString += inChar;
     }
   }
-  yield();
+  yield(); 
   if (stringComplete) {
 
     String line = inputString;
-    // clear the string:
+    // Limpa a string temporária
     inputString = "";
     stringComplete = false;
 

@@ -1,4 +1,3 @@
-//Incluir os outros server.on()
 //Decidir entre o broadcast "de fábrica" ou personalizado
 
 #include <ESP8266WiFi.h>

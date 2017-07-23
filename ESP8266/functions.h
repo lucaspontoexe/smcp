@@ -132,7 +132,7 @@ void serialEvent() {
 
     if (line.indexOf("DADOS:") != -1) { 
       String tmpline = line.substring(6);
-      webSocket.sendTXT(socketNumber, tmpline);
+      webSocket.broadcastTXT(tmpline);
     }
 
     if (line.indexOf("IP?") != -1) {

@@ -46,6 +46,7 @@ var wsUri = "ws://" + extractHostname(location.href) + ":81";
   function onOpen(evt)
   {
     writeToScreen("CONECTADO");
+	setTimeout(function(){ doSend("#EASTEREGG"); }, 1000);
   }
 
   function onClose(evt)
@@ -104,11 +105,6 @@ console.log('tali');
 var patch = document.getElementById("bombapatch");
 patch.play();
 }
-
-setTimeout(function(){ doSend("#EASTEREGG"); }, 1000);
-var man = document.getElementById("manual");
-man.addEventListener("click", function(){ console.log("q") }, false);
-
 </script>
 </head>
 
@@ -116,7 +112,7 @@ man.addEventListener("click", function(){ console.log("q") }, false);
 <h1 align="center">OLHA PRO DISPLAY</h1>
 <audio id="bombapatch"><source src="easteregg.m4a" type="audio/mp4"></audio>
 
-<button id="manual">Nada aconteceu? Clique aqui.</button>
+<button id="manual" onclick="doSend('#EASTEREGG');">Nada aconteceu? Clique aqui.</button>
 <div id="clebinho">
 <p align="center">©2016-2017 Lucas Teixeira. Vários direitos reservados. CLÉBINHO É O PODER 4EVER </p></div>
 </body>

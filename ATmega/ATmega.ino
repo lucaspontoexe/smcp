@@ -6,7 +6,7 @@ const byte    numChars        = 48;
 char          receivedChars[numChars];  // Array para manter os caracteres de serial
 boolean       newData         = false;
 unsigned long previousMillis  = 0;      // Salva a última vez que os dados foram atualizados
-unsigned long previousMillis1 = 0;		// Salva a última vez que o display mostrou o IP
+unsigned long previousMillis1 = 0;		  // Salva a última vez que o display mostrou o IP
 const long    interval        = 200;    // Intervalo entre medições
 String        stringSerial;
 boolean       ocupado         = true;
@@ -15,18 +15,17 @@ const int     pino_sct        = 0;
 const int     botao           = 11;
 int           estadoBotaoIP;
 int           tensao          = 220;
-int           calibra         = 18;
+float         calibra         = 18.0;
 String        ip = "(conectando)";
 String        dados;
 String        t, cal;
-
-#include "display_chars.h"
 
 EnergyMonitor emon1;
 SoftwareSerial esp8266(9, 10);
 LiquidCrystal lcd(4, 3, 5, 6, 7, 8);
 
 //#include "easteregg.h"
+#include "display_chars.h"
 
 void recvWithEndMarker() {
   static byte ndx = 0;
@@ -68,7 +67,7 @@ void setup() {
 
   lcd.begin(16, 2);
   lcd.setCursor(6, 0); lcd.print("SMCP");
-  lcd.setCursor(3, 1); lcd.print("Vers"); lcd.write((uint8_t)0); lcd.print("o 0.7");
+  lcd.setCursor(3, 1); escreverAcentos("Versão 0.7");
   emon1.current(pino_sct, calibra);
   esp8266.begin(9600);
   esp8266.println("Ligado");
@@ -82,7 +81,7 @@ void loop() {
 
   dados = "DADOS:{ \"corrente\": ";
   dados += Irms;
-  dados += ", \"potencia\":";
+  dados += ", \"potencia\": ";
   dados += potencia;
   dados += " }";
   esp8266.println(dados);
@@ -91,15 +90,20 @@ void loop() {
   showNewData();
   if (stringSerial.indexOf("T:") != -1) {
     t = stringSerial.substring(stringSerial.indexOf("T:") + 2, stringSerial.indexOf('\r'));
-    esp8266.print("Tensão ajustada para "); //DADOS: {"tensao": 220}, por exemplo.
-    esp8266.println(t);
+    esp8266.println();
+    esp8266.print("DADOS: {\"tensao\": ");
+    esp8266.print(t);
+    esp8266.println("}");
+
     tensao = t.toInt();
   }
   if (stringSerial.indexOf("CALIBRA:") != -1) {
     cal = stringSerial.substring(stringSerial.indexOf("CALIBRA:") + 8, stringSerial.indexOf('\r'));
-    esp8266.print("Nível de calibração ajustado para: ");
-    esp8266.println(calibra);
-    calibra = cal.toInt();
+    esp8266.println();
+    esp8266.print("DADOS: {\"calibra\": ");
+    esp8266.print(calibra);
+    esp8266.println("}");
+    calibra = cal.toFloat();
   }
 
   /*

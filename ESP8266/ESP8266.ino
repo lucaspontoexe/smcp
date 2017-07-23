@@ -1,14 +1,13 @@
-//Decidir entre o broadcast "de fábrica" ou personalizado
-
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <WebSocketsServer.h>
+#include <ESP8266HTTPUpdateServer.h>
 #include <Hash.h>
 #include "FS.h"
 
 //Serial
-String inputString = "";         // a string to hold incoming data
-boolean stringComplete = false;  // whether the string is complete
+String inputString = "";         // Armazena os dados que estão chegando
+boolean stringComplete = false;  // se a string está completa
 String line;
 
 //WebSockets
@@ -19,6 +18,7 @@ String             temp_str;
 String        pagina, tensao, calibra, apnome, apsenha;
 
 ESP8266WebServer server(80);
+ESP8266HTTPUpdateServer httpUpdater;
 WebSocketsServer webSocket(81);
 
 #include "functions.h"
@@ -48,10 +48,11 @@ void setup() {
   Serial.print("IP:");
   Serial.println(WiFi.localIP());
   inputString.reserve(256);
+  httpUpdater.setup(&server);
   server.begin();
   yield();
 
-  //Lê os arquivos
+  //Lê arquivos e executa funções dependendo do URL
   server.on("/", HTTP_GET, []() {
     handleFileRead("/");
   });

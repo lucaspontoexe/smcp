@@ -29,7 +29,7 @@ void setup() {
   delay(1000);
 
   //Texto (piscada) de início
-  Serial.println("ESP8266 0.7.0");
+  Serial.println("ESP8266 0.7.1");
   Serial.print("Iniciando SPIFFS... ");
   yield();
 

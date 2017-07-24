@@ -67,7 +67,8 @@ void setup() {
 
   lcd.begin(16, 2);
   lcd.setCursor(6, 0); lcd.print("SMCP");
-  lcd.setCursor(2, 1); escreverAcentos("Versão 0.7.1");
+  //Corrigir o problema
+  lcd.setCursor(2, 1); lcd.print("Vers"); lcd.write((uint8_t)0); lcd.print("o 0.7.1");
   emon1.current(pino_sct, calibra);
   esp8266.begin(9600);
   esp8266.println("Ligado");

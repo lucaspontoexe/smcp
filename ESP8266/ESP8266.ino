@@ -60,6 +60,23 @@ void setup() {
     handleFileRead("/ajustes.html");
   });
   server.on("/salvar", saveConfig);
+  server.on("/notepad", testeNotepad);
+
+  server.on("/edit", HTTP_GET, []() {
+    //server.send(200, "text/html", "<form method='POST' action='/edit' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Enviar'></form>");
+    handleFileRead("edit.htm");
+  });
+
+  //Cria um arquivo
+  server.on("/edit", HTTP_PUT, handleFileCreate);
+  //Apaga um arquivo
+  server.on("/edit", HTTP_DELETE, handleFileDelete);
+  //Primeiro callback indica que a requisição (com os argumentos) aconteceu
+  //O segundo callback envia o arquivo.
+  server.on("/edit", HTTP_POST, []() {
+    server.send(200, "text/plain", "Arquivo enviado ou [100%] atualizado");
+  }, handleFileUpload);
+  server.on("/list", HTTP_GET, handleFileList);
 
   server.onNotFound([]() {
     if (!handleFileRead(server.uri()))

@@ -20,13 +20,23 @@ String        ip = "(conectando)";
 String        dados;
 String        t, cal;
 
+//CARACTERE 'ã', por pura fresc-PARA MELHOR EXIBIÇÃO, isso.
+byte atilmin[8] = {
+  0b00101,
+  0b01010,
+  0b01110,
+  0b00001,
+  0b01111,
+  0b10001,
+  0b01111,
+  0b00000
+};
+
 EnergyMonitor emon1;
 SoftwareSerial esp8266(9, 10);
 LiquidCrystal lcd(4, 3, 5, 6, 7, 8);
 
-//#include "easteregg.h"
-#include "display_chars.h"
-
+//Detecta se tem informações novas vindo do serial (ESP8266)
 void recvWithEndMarker() {
   static byte ndx = 0;
   char endMarker = '\n';
@@ -57,18 +67,19 @@ void showNewData() {
   }
 }
 
+
 void setup() {
   pinMode (botao, INPUT);
-  lcd.createChar(0, atilmin);
-  lcd.createChar(1, atil);
-  lcd.createChar(2, aagudo);
-  lcd.createChar(3, eagudo);
-  lcd.createChar(4, iagudo);
 
+  //Manda o LCD carregar o caractere com acento
+  lcd.createChar(0, atilmin);
+
+  //Inicia o display
   lcd.begin(16, 2);
   lcd.setCursor(6, 0); lcd.print("SMCP");
-  //Corrigir o problema
   lcd.setCursor(2, 1); lcd.print("Vers"); lcd.write((uint8_t)0); lcd.print("o 0.7.1");
+
+  //Inicia o serial e o sensor de corrente
   emon1.current(pino_sct, calibra);
   esp8266.begin(9600);
   esp8266.println("Ligado");
@@ -76,10 +87,16 @@ void setup() {
 }
 
 void loop() {
+  //Registra há quanto tempo o dispositivo está ligado.
+  //Útil para fazer interrupções sem usar delay();
   unsigned long currentMillis = millis();
+
+  //Calcula a corrente e a potência
   double Irms = emon1.calcIrms(1480);
   double potencia = Irms * tensao;
 
+  //Manda os dados pro ESP.
+  //Tudo que começar com "DADOS:" é enviado direto pro navegador
   dados = "DADOS:{ \"corrente\": ";
   dados += Irms;
   dados += ", \"potencia\": ";
@@ -87,8 +104,12 @@ void loop() {
   dados += " }";
   esp8266.println(dados);
 
+  //Funções que recebem dados do serial
   recvWithEndMarker();
   showNewData();
+
+  //Assim que o comando "T:" for recebido, a variável "tensao" é ajustada para o número que vier em seguida.
+  //Usado para calcular a potência aparente. Eu sei que aparece um 'W' na tela, acontece.
   if (stringSerial.indexOf("T:") != -1) {
     t = stringSerial.substring(stringSerial.indexOf("T:") + 2, stringSerial.indexOf('\r'));
     esp8266.println();
@@ -98,6 +119,7 @@ void loop() {
 
     tensao = t.toInt();
   }
+  //A mesma coisa acontece com a calibração. Não há muita documentação sobre isto, infelizmente.
   if (stringSerial.indexOf("CALIBRA:") != -1) {
     cal = stringSerial.substring(stringSerial.indexOf("CALIBRA:") + 8, stringSerial.indexOf('\r'));
     esp8266.println();
@@ -107,16 +129,15 @@ void loop() {
     calibra = cal.toFloat();
   }
 
-  /*
-  if (stringSerial.indexOf("EASTEREGG") != -1) {
-    EASTEREGG();
-  }
-  */
-
+  //Verifica se o botão do IP está apertado
   estadoBotaoIP = digitalRead(botao);
   if (estadoBotaoIP == HIGH) {
     lcd.clear();
+    
+    //Pergunta no serial qual é o IP
     esp8266.println("IP?");
+    
+    //Tempo para esperar a informação chegar
     delay(150);
     recvWithEndMarker();
     showNewData();
@@ -125,8 +146,11 @@ void loop() {
       ocupado = true;
       lcd.clear(); //Apaga a tela assim que achar o IP.
     }
+    
     unsigned long previousMillis1 = millis();
     unsigned long currentMillis1 = millis();
+    
+    //Mostra o IP na tela enquanto continua medindo e enviando dados, por três segundos
     while (currentMillis1 - previousMillis1 <= 3000) {
       currentMillis1 = millis();
       lcd.setCursor(0, 0); lcd.print("IP:          ");
@@ -146,7 +170,7 @@ void loop() {
       showNewData();
     }
   }
-  //ip = "(desconectado)";
+
   ocupado = false;
   stringSerial = "";
 
@@ -155,6 +179,7 @@ void loop() {
     previousMillis = currentMillis;
 
     if (ocupado == false) {
+      //Atualiza o display com informações novas
       lcd.setCursor(0, 0);  lcd.print("Corr.(A): ");
       lcd.setCursor(0, 1);  lcd.print("Pot. (W): ");
       lcd.setCursor(10, 0); lcd.print(Irms);

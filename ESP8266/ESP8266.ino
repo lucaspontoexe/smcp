@@ -68,9 +68,11 @@ void setup() {
 }
 
 void loop() {
+  //Lê a entrada serial
   serialEvent();
+  //Executa ações em segundo plano
   yield();
-
+  //Controla o servidor e o protocolo WebSockets
   server.handleClient();
   webSocket.loop();
 }

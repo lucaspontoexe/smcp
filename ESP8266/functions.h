@@ -1,3 +1,6 @@
+//Lista de funções necessárias para o ESP funcionar
+
+//Controla o protocolo WebSockets, usado na comunicação em tempo real.
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) {
 
   switch (type) {
@@ -6,7 +9,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
       yield();
       break;
 
-    case WStype_CONNECTED: {                  // Braces required http://stackoverflow.com/questions/5685471/error-jump-to-case-label
+    case WStype_CONNECTED: {                  // Chaves '{}' necessárias. http://stackoverflow.com/questions/5685471/error-jump-to-case-label
         IPAddress ip = webSocket.remoteIP(num);
         Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
         yield();
@@ -17,7 +20,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
     case WStype_TEXT:
       //Comandos que comecem com '#' são envidados diretamente pro serial
       //Da mesma forma, é possível enviar dados para o navegador (ver a programação do ATmega)
-	  //Ou seja, serial remoto.
+	    //Ou seja, serial remoto.
       if (payload[0] == '#') {
         //String tmp = payload.substring(1);
         Serial.printf("[%u] get Text: %s\n", num, payload);
@@ -32,7 +35,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
   }
 }
 
-
+//As próximas duas funções são sobre o gerenciamento de arquivos
 String getContentType(String filename) {
   yield();
   if (server.hasArg("download"))      return "application/octet-stream";
@@ -90,6 +93,7 @@ void loadConfig() {
   f.close();
 }
 
+//Depois de carregar as configurações, conecta à rede WiFi
 void setupWiFi()
 {
   int t = 0;
@@ -112,6 +116,7 @@ void setupWiFi()
 }
 
 
+//Leitura de serial
 void serialEvent() {
   while (Serial.available()) {
     char inChar = (char)Serial.read();
@@ -130,11 +135,13 @@ void serialEvent() {
     inputString = "";
     stringComplete = false;
 
+  //Assim que aparecer o comando 'DADOS:', envia a informação para o navegador, usando WebSockets
     if (line.indexOf("DADOS:") != -1) { 
       String tmpline = line.substring(6);
       webSocket.broadcastTXT(tmpline);
     }
-
+  //O comando 'IP?' faz o ESP escrever o IP por serial.
+  //Esse número tem que ser colocado no navegador para carregar a página inicial
     if (line.indexOf("IP?") != -1) {
       Serial.print("IP:");
       Serial.println(WiFi.localIP());
@@ -142,13 +149,14 @@ void serialEvent() {
   }
 }
 
+//Salva as configurações.
 void saveConfig() {
   tensao  = server.arg("tensao");
   calibra = server.arg("calibra");
   apnome  = server.arg("apnome");
   apsenha = server.arg("apsenha");
 
-  //Salva os novos dados no config.txt
+  //Salva os novos dados no arquivo config.txt
   File f = SPIFFS.open("/config.txt", "w");
   f.print("tensao=");   f.println(tensao);
   f.print("calibra=");  f.println(calibra);

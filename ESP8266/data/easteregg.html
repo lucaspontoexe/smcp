@@ -57,7 +57,10 @@ var wsUri = "ws://" + extractHostname(location.href) + ":81";
   function onMessage(evt)
   {
     writeToScreen('RECEBIDO: ' + evt.data);
-    var result = JSON.parse(evt.data);
+	var evtText = evt.data;
+	if (evtText.indexOf("running") != -1) { disparar(); }
+
+	var result = JSON.parse(evt.data);
 	if (result.running == true){
 	disparar();
 	}

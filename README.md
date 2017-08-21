@@ -1,3 +1,5 @@
+**ATENÇÃO, ALUNOS E PROFESSORES DO SENAI: Procurem a programação [neste link](https://github.com/lucaspontoexe/smcp/tree/senai), porque esta é experimental.**
+
 # SMCP - Sistema de Monitoramento de Corrente e Potência
 Projeto desenvolvido em 2016 como projeto final do curso técnico de Eletroeletrônica pelo SENAI.
 

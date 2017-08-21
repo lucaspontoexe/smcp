@@ -98,6 +98,7 @@ void EASTEREGG() {
 
   //Só pra garantir
   esp8266.println();
+  esp8266.println();
   esp8266.println("DADOS:{\"running\": true}");
   delay(5);
   esp8266.println("DADOS:{\"running\": true}");

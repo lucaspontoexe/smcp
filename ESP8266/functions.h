@@ -125,20 +125,10 @@ void serialEvent() {
   yield();
   if (stringComplete) {
 
-    String line = inputString;
+    line = inputString;
     // Limpa a string temporária
     inputString = "";
     stringComplete = false;
-
-    if (line.indexOf("DADOS:") != -1) {
-      String tmpline = line.substring(6);
-      webSocket.broadcastTXT(tmpline);
-    }
-
-    if (line.indexOf("IP?") != -1) {
-      Serial.print("IP:");
-      Serial.println(WiFi.localIP());
-    }
   }
 }
 

@@ -8,8 +8,11 @@ boolean       newData         = false;
 unsigned long previousMillis  = 0;      // Salva a última vez que os dados foram atualizados
 unsigned long previousMillis1 = 0;		  // Salva a última vez que o display mostrou o IP
 const long    interval        = 200;    // Intervalo entre medições
-String        stringSerial;
 boolean       ocupado         = true;
+
+String        inputString = "";         // Armazena os dados que estão chegando
+boolean       stringComplete  = false;  // se a string está completa
+String        stringSerial;
 
 const int     pino_sct        = 0;
 const int     botao           = 11;
@@ -27,33 +30,23 @@ LiquidCrystal lcd(4, 3, 5, 6, 7, 8);
 #include "display_chars.h"
 #include "easteregg.h"
 
-void recvWithEndMarker() {
-  static byte ndx = 0;
-  char endMarker = '\n';
-  char rc;
-
-  while (esp8266.available() > 0 && newData == false) {
-    rc = esp8266.read();
-
-    if (rc != endMarker) {
-      receivedChars[ndx] = rc;
-      ndx++;
-      if (ndx >= numChars) {
-        ndx = numChars - 1;
-      }
-    }
-    else {
-      receivedChars[ndx] = '\0'; // Termina a string
-      ndx = 0;
-      newData = true;
+void serialEvent() {
+  while (Serial.available()) {
+    char inChar = (char)Serial.read();
+    if (inChar == '\n') {
+      stringComplete = true;
+      return;
+    } else {
+      inputString += inChar;
     }
   }
-}
+  yield();
+  if (stringComplete) {
 
-void showNewData() {
-  if (newData == true) {
-    stringSerial = receivedChars;
-    newData = false;
+    stringSerial = inputString;
+    // Limpa a string temporária
+    inputString = "";
+    stringComplete = false;
   }
 }
 
@@ -64,12 +57,14 @@ void setup() {
   lcd.createChar(2, aagudo);
   lcd.createChar(3, eagudo);
   lcd.createChar(4, iagudo);
-
   lcd.begin(16, 2);
   lcd.setCursor(6, 0); lcd.print("SMCP");
   //Corrigir o problema
   lcd.setCursor(2, 1); lcd.print("Vers"); lcd.write((uint8_t)0); lcd.print("o 0.7.1");
+
   emon1.current(pino_sct, calibra);
+
+  inputString.reserve(256);
   esp8266.begin(9600);
   esp8266.println("Ligado");
   ocupado = false;
@@ -87,8 +82,8 @@ void loop() {
   dados += " }";
   esp8266.println(dados);
 
-  recvWithEndMarker();
-  showNewData();
+  serialEvent();
+
   if (stringSerial.indexOf("T:") != -1) {
     t = stringSerial.substring(stringSerial.indexOf("T:") + 2, stringSerial.indexOf('\r'));
     esp8266.println();
@@ -107,19 +102,16 @@ void loop() {
     calibra = cal.toFloat();
   }
 
-
-    if (stringSerial.indexOf("EASTEREGG") != -1) {
+  if (stringSerial.indexOf("EASTEREGG") != -1) {
     EASTEREGG();
-    }
-
+  }
 
   estadoBotaoIP = digitalRead(botao);
   if (estadoBotaoIP == HIGH) {
     lcd.clear();
     esp8266.println("IP?");
     delay(150);
-    recvWithEndMarker();
-    showNewData();
+    serialEvent();
     if (stringSerial.indexOf("IP:") != -1) {
       ip = stringSerial.substring(stringSerial.indexOf("IP:") + 3, stringSerial.indexOf('\r'));
       ocupado = true;
@@ -142,8 +134,7 @@ void loop() {
       dados += potencia;
       dados += " }";
       esp8266.println(dados);
-      recvWithEndMarker();
-      showNewData();
+      serialEvent();
     }
   }
   //ip = "(desconectado)";

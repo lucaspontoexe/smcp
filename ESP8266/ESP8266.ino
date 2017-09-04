@@ -88,6 +88,16 @@ void loop() {
   serialEvent();
   yield();
 
+  if (line.indexOf("DADOS:") != -1) {
+    String tmpline = line.substring(6);
+    webSocket.broadcastTXT(tmpline);
+  }
+
+  if (line.indexOf("IP?") != -1) {
+    Serial.print("IP:");
+    Serial.println(WiFi.localIP());
+  }
+
   server.handleClient();
   webSocket.loop();
 }

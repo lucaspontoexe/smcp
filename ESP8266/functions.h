@@ -25,10 +25,9 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
       }
 
       if (payload[0] == '*') {
-      for (int i = 1; i < lenght; i++) {
-        socket_cmd += payload[i];
-      }
-      
+        for (int i = 1; i < lenght; i++) {
+          socket_cmd += (char)payload[i];
+        }
       }
 
       break;

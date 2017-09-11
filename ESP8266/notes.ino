@@ -1,5 +1,7 @@
 /*
 
+Implementações já foram feitas.
+
   [
   {"ssid":"azideia","rssi": -83},
   {"ssid":"sampley","rssi": -80},

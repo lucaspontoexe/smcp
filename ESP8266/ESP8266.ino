@@ -72,16 +72,22 @@ void setup() {
     //Acho que é assim:
     /*if (!server.authenticate("1diadeaula","clebinho"))*/server.send(403, "text/plain", "Você quase conseguiu a senha do WiFi. Quase.");
   });
-
+  
   server.on("/wifilist", HTTP_GET, []() {
     server.send(200, "text/json", listWifi());
   });
 
+  server.on("/dados", HTTP_GET, []() {
+    //Decidir o que fazer quando não tiver nada no serial.
+    String tmpline = line.substring(6);
+    server.send(200, "text/json", tmpline);
+  });
+
+  
   server.on("/edit", HTTP_GET, []() {
     //server.send(200, "text/html", "<form method='POST' action='/edit' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Enviar'></form>");
     handleFileRead("edit.htm");
   });
-
   //Cria um arquivo
   server.on("/edit", HTTP_PUT, handleFileCreate);
   //Apaga um arquivo
@@ -116,9 +122,8 @@ void loop() {
   server.handleClient();
   webSocket.loop();
 
-  //Teste
+  //Recebe comandos por WebSockets (APENAS CARACTERES ASCII)
   if (socket_cmd.indexOf("WIFILIST") != -1) {
-    //Mudar pra Send depois. Como? DESCUBRA.
     String memoriapraque = listWifi();
     webSocket.sendTXT(socketNumber, memoriapraque);
   }

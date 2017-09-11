@@ -1,4 +1,4 @@
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) { //olho no typo
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
 
   switch (type) {
     case WStype_DISCONNECTED:
@@ -19,13 +19,19 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
       //Da mesma forma, é possível enviar dados para o navegador (ver a programação do ATmega)
       //Ou seja, serial remoto.
       if (payload[0] == '#') {
-        //String tmp = payload.substring(1);
-        Serial.printf("[%u] get Text: %s\n", num, payload);
+        //Serial.printf("[%u] get Text: %s\n", num, payload);
+        String tmp_serial;
+        
+        for (int i = 1; i < length; i++) {
+          tmp_serial += (char)payload[i];
+        }
+        
+        Serial.println(tmp_serial);
         yield();
       }
 
       if (payload[0] == '*') {
-        for (int i = 1; i < lenght; i++) {
+        for (int i = 1; i < length; i++) {
           socket_cmd += (char)payload[i];
         }
       }
@@ -130,7 +136,6 @@ void serialEvent() {
   }
   yield();
   if (stringComplete) {
-
     line = inputString;
     // Limpa a string temporária
     inputString = "";
@@ -247,32 +252,19 @@ void handleFileList() {
   server.send(200, "text/json", output);
 }
 
-//Teste rudimentar para envio de arquivos
-void testeNotepad() {
-  String fname = server.arg("filename");
-  String content = server.arg("content");
-  File f = SPIFFS.open("/" + fname, "w");
-  f.print(content);
-  f.close();
-  server.send(200, "text/plain", "Provavelmente foi. \r\nFilename: " + fname + "\r\nContent: " + content);
-}
-
-String listWifi() { // Por que não String?
+String listWifi() {
   int num = WiFi.scanNetworks();
   int i;
-  String tmp; //Achar alguma solução que gaste menos memória, porque olha...
-  tmp += "[";
-  for (i = 0; i < (num - 1); i++) {
-    tmp += "{\"ssid\":\"";
-    tmp += (WiFi.SSID(i));
-    tmp += "\",\"rssi\":";
-    tmp += (WiFi.RSSI(i));
-    tmp += "},";
+  StaticJsonBuffer<2560> jsonBuffer;
+  JsonArray& array = jsonBuffer.createArray();
+
+  for (i = 0; i < (num); i++) {
+    JsonObject& obj = array.createNestedObject();
+    obj["ssid"] = WiFi.SSID(i);
+    obj["rssi"] = WiFi.RSSI(i);
+    obj["hasPassword"] = (WiFi.encryptionType(i) != ENC_TYPE_NONE);
   }
-  tmp += "{ \"ssid\":\"";
-  tmp += (WiFi.SSID(num));
-  tmp += "\",\"rssi\":";
-  tmp += (WiFi.RSSI(num));
-  tmp += "}]";
+  String tmp;
+  array.printTo(tmp);
   return tmp;
 }

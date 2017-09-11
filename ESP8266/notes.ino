@@ -10,22 +10,4 @@ Implementações já foram feitas.
 
   response[0].ssid;
 
-
-
-[
-for (i = 0, i < num, i++) {
-  { \"ssid\":\"
-    ssid
-    \",\"rssi\":
-    rssi
-  },
-  }
-  
-  { \"ssid\":\"
-    ssid
-    \",\"rssi\":
-    rssi
-  }
-  ]
-
   */

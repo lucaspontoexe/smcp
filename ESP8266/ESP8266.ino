@@ -3,7 +3,10 @@
 #include <WebSocketsServer.h>
 #include <ESP8266HTTPUpdateServer.h>
 #include <Hash.h>
+#include <ArduinoJson.h>
 #include "FS.h"
+
+#define VERSION "NIGHTLY pre-0.8"
 
 //Serial
 String inputString = "";         // Armazena os dados que estão chegando
@@ -15,7 +18,7 @@ uint8_t            socketNumber;
 String             socket_cmd;
 
 //Configurações e resto
-String        pagina, tensao, calibra, apnome, apsenha;
+String             tensao, calibra, apnome, apsenha;
 
 ESP8266WebServer server(80);
 ESP8266HTTPUpdateServer httpUpdater;
@@ -29,7 +32,7 @@ void setup() {
   delay(1000);
 
   //Texto (piscada) de início
-  Serial.println("ESP8266 0.7.1");
+  Serial.println("ESP8266 VERSION");
   Serial.print("Iniciando SPIFFS... ");
   yield();
 
@@ -53,37 +56,27 @@ void setup() {
   yield();
 
   //Lê arquivos e executa funções dependendo do URL
-  server.on("/", HTTP_GET, []() {
-    handleFileRead("/");
-  });
-  server.on("/config", HTTP_GET, []() {
-    handleFileRead("/ajustes.html");
-  });
+  server.on("/", HTTP_GET,           []() { handleFileRead("/"); });
+  server.on("/config", HTTP_GET,     []() { handleFileRead("/ajustes.html"); });
   server.on("/salvar", saveConfig);
-  server.on("/notepad", testeNotepad);
-
   //Esse não é o branch SENAI, né?
-  server.on("/easteregg", HTTP_GET, []() {
-    handleFileRead("/easteregg.htm");
-  });
+  server.on("/easteregg", HTTP_GET,  []() { handleFileRead("/easteregg.htm"); });
+  server.on("/wifilist", HTTP_GET,   []() { server.send(200, "text/json", listWifi()); });
+
 
   server.on("/config.txt", HTTP_GET, []() {
-    //Inserir um server.authenticate aqui.
-    //Acho que é assim:
-    /*if (!server.authenticate("1diadeaula","clebinho"))*/server.send(403, "text/plain", "Você quase conseguiu a senha do WiFi. Quase.");
-  });
+    if (!server.authenticate("1diadeaula","clebinho")) {
+      server.send(403, "text/plain", "Você quase conseguiu a senha do WiFi. Quase."); 
+    }
+});
   
-  server.on("/wifilist", HTTP_GET, []() {
-    server.send(200, "text/json", listWifi());
-  });
-
   server.on("/dados", HTTP_GET, []() {
     //Decidir o que fazer quando não tiver nada no serial.
     String tmpline = line.substring(6);
     server.send(200, "text/json", tmpline);
   });
 
-  
+
   server.on("/edit", HTTP_GET, []() {
     //server.send(200, "text/html", "<form method='POST' action='/edit' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Enviar'></form>");
     handleFileRead("edit.htm");
@@ -124,9 +117,23 @@ void loop() {
 
   //Recebe comandos por WebSockets (APENAS CARACTERES ASCII)
   if (socket_cmd.indexOf("WIFILIST") != -1) {
-    String memoriapraque = listWifi();
-    webSocket.sendTXT(socketNumber, memoriapraque);
+    String tmp = listWifi();
+    webSocket.sendTXT(0, tmp);
   }
 
+  if (socket_cmd.indexOf("HEAP") != -1) {
+    String memoriapraque = String(ESP.getFreeHeap());
+    webSocket.sendTXT(0, memoriapraque);
+  }
+
+  if (socket_cmd.indexOf("INFO") != -1) {
+    StaticJsonBuffer<128> jsonBuffer;
+    JsonObject& root = jsonBuffer.createObject();
+    root["heap"] = String(ESP.getFreeHeap());
+    root["version"] = VERSION;
+    String tmp_info;
+    root.printTo(tmp_info);
+    webSocket.sendTXT(0, tmp_info);
+  }
   socket_cmd = "";
 }

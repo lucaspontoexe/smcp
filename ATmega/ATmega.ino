@@ -83,16 +83,15 @@ void loop() {
   esp8266.println(dados);
 
   serialEvent();
-
   if (stringSerial.indexOf("T:") != -1) {
     t = stringSerial.substring(stringSerial.indexOf("T:") + 2, stringSerial.indexOf('\r'));
     esp8266.println();
     esp8266.print("DADOS: {\"tensao\": ");
     esp8266.print(t);
     esp8266.println("}");
-
     tensao = t.toInt();
   }
+  
   if (stringSerial.indexOf("CALIBRA:") != -1) {
     cal = stringSerial.substring(stringSerial.indexOf("CALIBRA:") + 8, stringSerial.indexOf('\r'));
     esp8266.println();
@@ -117,6 +116,7 @@ void loop() {
       ocupado = true;
       lcd.clear(); //Apaga a tela assim que achar o IP.
     }
+   
     unsigned long previousMillis1 = millis();
     unsigned long currentMillis1 = millis();
     while (currentMillis1 - previousMillis1 <= 3000) {

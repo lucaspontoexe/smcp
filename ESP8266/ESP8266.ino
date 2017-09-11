@@ -12,7 +12,7 @@ String line;
 
 //WebSockets
 uint8_t            socketNumber;
-String             temp_str;
+String             socket_cmd;
 
 //Configurações e resto
 String        pagina, tensao, calibra, apnome, apsenha;
@@ -62,6 +62,21 @@ void setup() {
   server.on("/salvar", saveConfig);
   server.on("/notepad", testeNotepad);
 
+  //Esse não é o branch SENAI, né?
+  server.on("/easteregg", HTTP_GET, []() {
+    handleFileRead("/easteregg.htm");
+  });
+
+  server.on("/config.txt", HTTP_GET, []() {
+    //Inserir um server.authenticate aqui.
+    //Acho que é assim:
+    /*if (!server.authenticate("1diadeaula","clebinho"))*/server.send(403, "text/plain", "Você quase conseguiu a senha do WiFi. Quase.");
+  });
+
+  server.on("/wifilist", HTTP_GET, []() {
+    server.send(200, "text/json", listWifi());
+  });
+
   server.on("/edit", HTTP_GET, []() {
     //server.send(200, "text/html", "<form method='POST' action='/edit' enctype='multipart/form-data'><input type='file' name='update'><input type='submit' value='Enviar'></form>");
     handleFileRead("edit.htm");
@@ -100,4 +115,13 @@ void loop() {
 
   server.handleClient();
   webSocket.loop();
+
+  //Teste
+  if (socket_cmd.indexOf("WIFILIST") != -1) {
+    //Mudar pra Send depois. Como? DESCUBRA.
+    String memoriapraque = listWifi();
+    webSocket.sendTXT(socketNumber, memoriapraque);
+  }
+
+  socket_cmd = "";
 }

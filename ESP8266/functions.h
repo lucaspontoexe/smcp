@@ -1,4 +1,4 @@
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) {
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght) { //olho no typo
 
   switch (type) {
     case WStype_DISCONNECTED:
@@ -22,6 +22,13 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t lenght
         //String tmp = payload.substring(1);
         Serial.printf("[%u] get Text: %s\n", num, payload);
         yield();
+      }
+
+      if (payload[0] == '*') {
+      for (int i = 1; i < lenght; i++) {
+        socket_cmd += payload[i];
+      }
+      
       }
 
       break;
@@ -133,6 +140,10 @@ void serialEvent() {
 }
 
 void saveConfig() {
+  //Dividir esse procedimento em dois:
+  //1. A parte das configurações rápidas
+  //2. Config. de WiFi (que precisam reiniciar o aparelho)
+  //Por que não usar parâmetros?
   tensao  = server.arg("tensao");
   calibra = server.arg("calibra");
   apnome  = server.arg("apnome");
@@ -244,5 +255,25 @@ void testeNotepad() {
   File f = SPIFFS.open("/" + fname, "w");
   f.print(content);
   f.close();
-  server.send(200, "text/plain", "Acho que foi. \r\nFilename: " + fname + "\r\nContent: " + content);
+  server.send(200, "text/plain", "Provavelmente foi. \r\nFilename: " + fname + "\r\nContent: " + content);
+}
+
+String listWifi() { // Por que não String?
+  int num = WiFi.scanNetworks();
+  int i;
+  String tmp; //Achar alguma solução que gaste menos memória, porque olha...
+  tmp += "[";
+  for (i = 0; i < (num - 1); i++) {
+    tmp += "{\"ssid\":\"";
+    tmp += (WiFi.SSID(i));
+    tmp += "\",\"rssi\":";
+    tmp += (WiFi.RSSI(i));
+    tmp += "},";
+  }
+  tmp += "{ \"ssid\":\"";
+  tmp += (WiFi.SSID(num));
+  tmp += "\",\"rssi\":";
+  tmp += (WiFi.RSSI(num));
+  tmp += "}]";
+  return tmp;
 }

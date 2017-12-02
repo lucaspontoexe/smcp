@@ -24,8 +24,8 @@ EnergyMonitor emon1;
 SoftwareSerial esp8266(9, 10);
 LiquidCrystal lcd(4, 3, 5, 6, 7, 8);
 
-//#include "easteregg.h"
 #include "display_chars.h"
+//#include "easteregg.h"
 
 void recvWithEndMarker() {
   static byte ndx = 0;

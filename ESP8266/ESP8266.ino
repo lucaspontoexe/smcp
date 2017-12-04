@@ -112,21 +112,25 @@ void loop() {
     Serial.println(WiFi.localIP());
   }
 
+  //Evita comandos duplicados.
+  line = "";
+
   server.handleClient();
   webSocket.loop();
 
+
   //Recebe comandos por WebSockets (APENAS CARACTERES ASCII)
-  if (socket_cmd.indexOf("WIFILIST") != -1) {
+  if (socket_cmd.indexOf("wifilist") != -1) {
     String tmp = listWifi();
     webSocket.sendTXT(0, tmp);
   }
 
-  if (socket_cmd.indexOf("HEAP") != -1) {
+  if (socket_cmd.indexOf("heap") != -1) {
     String memoriapraque = String(ESP.getFreeHeap());
     webSocket.sendTXT(0, memoriapraque);
   }
 
-  if (socket_cmd.indexOf("INFO") != -1) {
+  if (socket_cmd.indexOf("info") != -1) {
     StaticJsonBuffer<128> jsonBuffer;
     JsonObject& root = jsonBuffer.createObject();
     root["heap"] = String(ESP.getFreeHeap());

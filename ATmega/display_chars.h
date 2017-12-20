@@ -1,10 +1,10 @@
 void escreverAcentos(String texto) {
   for (int i = 0; i < texto.length(); i++) {
-    if (texto[i] == 'ã') lcd.write((uint8_t)0);
-    else if (texto[i] == 'Ã') lcd.write((uint8_t)1);
-    else if (texto[i] == 'Á') lcd.write((uint8_t)2);
-    else if (texto[i] == 'É') lcd.write((uint8_t)3);
-    else if (texto[i] == 'Í') lcd.write((uint8_t)4);
+    if (texto[i] == '\xc6') lcd.write((uint8_t)0);
+    else if (texto[i] == '\xc7') lcd.write((uint8_t)1);
+    else if (texto[i] == '\xb5') lcd.write((uint8_t)2);
+    else if (texto[i] == '\x90') lcd.write((uint8_t)3);
+    else if (texto[i] == '\xd6') lcd.write((uint8_t)4);
     else lcd.write(texto[i]);
   }
 }

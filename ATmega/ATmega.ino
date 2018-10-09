@@ -2,98 +2,63 @@
 #include <LiquidCrystal.h>
 #include <SoftwareSerial.h>
 
-const byte    numChars        = 48;
-char          receivedChars[numChars];  // Array para manter os caracteres de serial
-boolean       newData         = false;
-unsigned long previousMillis  = 0;      // Salva a última vez que os dados foram atualizados
-unsigned long previousMillis1 = 0;		  // Salva a última vez que o display mostrou o IP
-const long    interval        = 200;    // Intervalo entre medições
-boolean       ocupado         = true;
+#define  pino_sct 0
+#define  botao 11
 
 String        inputString = "";         // Armazena os dados que estão chegando
 boolean       stringComplete  = false;  // se a string está completa
 String        stringSerial;
 
-const int     pino_sct        = 0;
-const int     botao           = 11;
 int           estadoBotaoIP;
 int           tensao          = 220;
 float         calibra         = 18.0;
 String        ip = "(conectando)";
 String        dados;
-String        t, cal;
+
+double Irms, potencia;
 
 EnergyMonitor emon1;
 SoftwareSerial esp8266(9, 10);
 LiquidCrystal lcd(4, 3, 5, 6, 7, 8);
 
 #include "display_chars.h"
-#include "easteregg.h"
 
-void serialEvent() {
-  while (Serial.available()) {
-    char inChar = (char)Serial.read();
-    if (inChar == '\n') {
-      stringComplete = true;
-      return;
-    } else {
-      inputString += inChar;
-    }
-  }
-  yield();
-  if (stringComplete) {
-
-    stringSerial = inputString;
-    // Limpa a string temporária
-    inputString = "";
-    stringComplete = false;
-  }
-}
+typedef void (*func_t)(); //ponteiro de função sem argumentos, do tipo void (mas dá pra colocar argumentos também, é só atualizar lá no ponteiro que funciona também)
+func_t fptr;              //uma variável que armazena o ponteiro (é tipo OOP) (aqui func_t é basicamente um ponteiro de função)
 
 void setup() {
   pinMode (botao, INPUT);
+
   lcd.createChar(0, atilmin);
   lcd.createChar(1, atil);
   lcd.createChar(2, aagudo);
   lcd.createChar(3, eagudo);
   lcd.createChar(4, iagudo);
+
   lcd.begin(16, 2);
   lcd.setCursor(6, 0); lcd.print("SMCP");
-  //Corrigir o problema
-  lcd.setCursor(2, 1); lcd.print("Vers"); lcd.write((uint8_t)0); lcd.print("o 0.7.1");
+  lcd.setCursor(2, 1); lcd.print("Vers"); lcd.write((uint8_t)0); lcd.print("o 0.8");
 
   emon1.current(pino_sct, calibra);
 
   inputString.reserve(256);
   esp8266.begin(9600);
   esp8266.println("Ligado");
-  ocupado = false;
 }
 
 void loop() {
-  unsigned long currentMillis = millis();
-  double Irms = emon1.calcIrms(1480);
-  double potencia = Irms * tensao;
-
-  dados = "DADOS:{ \"corrente\": ";
-  dados += Irms;
-  dados += ", \"potencia\": ";
-  dados += potencia;
-  dados += " }";
-  esp8266.println(dados);
-
   serialEvent();
   if (stringSerial.indexOf("T:") != -1) {
-    t = stringSerial.substring(stringSerial.indexOf("T:") + 2, stringSerial.indexOf('\r'));
+    String t = stringSerial.substring(stringSerial.indexOf("T:") + 2, stringSerial.indexOf('\r'));
     esp8266.println();
     esp8266.print("DADOS: {\"tensao\": ");
     esp8266.print(t);
     esp8266.println("}");
     tensao = t.toInt();
   }
-  
+
   if (stringSerial.indexOf("CALIBRA:") != -1) {
-    cal = stringSerial.substring(stringSerial.indexOf("CALIBRA:") + 8, stringSerial.indexOf('\r'));
+    String cal = stringSerial.substring(stringSerial.indexOf("CALIBRA:") + 8, stringSerial.indexOf('\r'));
     esp8266.println();
     esp8266.print("DADOS: {\"calibra\": ");
     esp8266.print(calibra);
@@ -101,9 +66,6 @@ void loop() {
     calibra = cal.toFloat();
   }
 
-  if (stringSerial.indexOf("EASTEREGG") != -1) {
-    EASTEREGG();
-  }
 
   estadoBotaoIP = digitalRead(botao);
   if (estadoBotaoIP == HIGH) {
@@ -113,43 +75,72 @@ void loop() {
     serialEvent();
     if (stringSerial.indexOf("IP:") != -1) {
       ip = stringSerial.substring(stringSerial.indexOf("IP:") + 3, stringSerial.indexOf('\r'));
-      ocupado = true;
       lcd.clear(); //Apaga a tela assim que achar o IP.
-    }
-   
-    unsigned long previousMillis1 = millis();
-    unsigned long currentMillis1 = millis();
-    while (currentMillis1 - previousMillis1 <= 3000) {
-      currentMillis1 = millis();
       lcd.setCursor(0, 0); lcd.print("IP:          ");
       lcd.setCursor(0, 1); lcd.print(ip);
-
-      unsigned long currentMillis = millis();
-      double Irms = emon1.calcIrms(1480);
-      double potencia = Irms * tensao;
-
-      dados = "DADOS:{ \"corrente\": ";
-      dados += Irms;
-      dados += ", \"potencia\":";
-      dados += potencia;
-      dados += " }";
-      esp8266.println(dados);
-      serialEvent();
+      keepRunning(medir, 3000);
     }
   }
   //ip = "(desconectado)";
-  ocupado = false;
   stringSerial = "";
+  lcd.setCursor(0, 0);  lcd.print("Corr.(A): ");
+  lcd.setCursor(0, 1);  lcd.print("Pot. (W): ");
+  lcd.setCursor(10, 0); lcd.print(Irms);
+  lcd.setCursor(10, 1); lcd.print(potencia, 1);
+  keepRunning(medir, 100);
+}
 
-  if (currentMillis - previousMillis >= interval) {
-    //Marca tempo para verificar se já se passou o tempo para uma nova medição
-    previousMillis = currentMillis;
 
-    if (ocupado == false) {
-      lcd.setCursor(0, 0);  lcd.print("Corr.(A): ");
-      lcd.setCursor(0, 1);  lcd.print("Pot. (W): ");
-      lcd.setCursor(10, 0); lcd.print(Irms);
-      lcd.setCursor(10, 1); lcd.print(potencia, 1);
-    }
+void medir() {
+  Irms = emon1.calcIrms(1480);
+  potencia = Irms * tensao;
+  dados = "DADOS:{ \"corrente\": ";
+  dados += Irms;
+  dados += ", \"potencia\": ";
+  dados += potencia;
+  dados += " }";
+  esp8266.println(dados);
+  serialEvent();
+}
+
+
+
+//A função que define quem vai ficar rodando pelo tempo que for necessário
+void keepRunning(func_t callback, long timer) {
+
+  //Armazena a função que foi passada como argumento no ponteiro
+  fptr = callback;
+
+  //Anota os tempos
+  unsigned long rightnow, pasttime;
+  pasttime = millis();
+  rightnow = millis();
+
+  while (rightnow - pasttime <= timer) {
+    //Enquanto a diferença de tempo for menor que a quantidade pedida, rodar a função callback repetidamente.
+    //Atualiza "que horas são"
+    rightnow = millis();
+    fptr(); //keep dem runnin'
   }
 }
+
+void serialEvent() {
+  while (Serial.available() > 0) {
+    char inChar = (char)Serial.read();
+    if (inChar == '\n') {
+      stringComplete = true;
+      return;
+    } else {
+      inputString += inChar;
+    }
+  }
+
+  if (stringComplete) {
+    //Dica: return inputString;
+    stringSerial = inputString;
+    // Limpa a string temporária
+    inputString = "";
+    stringComplete = false;
+  }
+}
+

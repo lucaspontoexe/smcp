@@ -23,6 +23,7 @@ LiquidCrystal lcd(4, 3, 5, 6, 7, 8);
 
 #include "display_chars.h"
 
+void (*resetFunc)() = 0;
 typedef void (*func_t)(); //ponteiro de função sem argumentos, do tipo void (mas dá pra colocar argumentos também, é só atualizar lá no ponteiro que funciona também)
 func_t fptr;              //uma variável que armazena o ponteiro (é tipo OOP) (aqui func_t é basicamente um ponteiro de função)
 
@@ -51,7 +52,8 @@ void loop() {
   if (stringSerial.indexOf("T:") != -1) {
     String t = stringSerial.substring(stringSerial.indexOf("T:") + 2, stringSerial.indexOf('\r'));
     esp8266.println();
-    esp8266.print("DADOS: {\"tensao\": ");
+    //esp8266.print("DADOS: {\"tensao\": ");
+    esp8266.print("{\"tensao\": ");
     esp8266.print(t);
     esp8266.println("}");
     tensao = t.toInt();
@@ -60,10 +62,16 @@ void loop() {
   if (stringSerial.indexOf("CALIBRA:") != -1) {
     String cal = stringSerial.substring(stringSerial.indexOf("CALIBRA:") + 8, stringSerial.indexOf('\r'));
     esp8266.println();
-    esp8266.print("DADOS: {\"calibra\": ");
+    //esp8266.print("DADOS: {\"calibra\": ");
+    esp8266.print("{\"calibra\": ");
     esp8266.print(calibra);
     esp8266.println("}");
     calibra = cal.toFloat();
+  }
+  
+  if (stringSerial.indexOf("RESET") == 0) {
+	esp8266.println("[DEBUG] Resetting...");
+	resetFunc();
   }
 
 
@@ -101,6 +109,7 @@ void medir() {
   dados += " }";
   esp8266.println(dados);
   serialEvent();
+  //delay
 }
 
 
@@ -125,7 +134,7 @@ void keepRunning(func_t callback, long timer) {
 }
 
 void serialEvent() {
-  while (Serial.available() > 0) {
+  while (esp8266.available() > 0 && stringComplete == false) {
     char inChar = (char)Serial.read();
     if (inChar == '\n') {
       stringComplete = true;
